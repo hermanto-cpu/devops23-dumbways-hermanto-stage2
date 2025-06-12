@@ -1,27 +1,8 @@
 # 📘 Docker Task
 
-- Rebuild ulang server BiznetGio kalian, lalu gunakan username "dumbways" yang kalian gunakan bersama, pastikan menggunakan login melalui ssh-key dan bukan password. (1 key untuk semua akan menjadi bonus)
+## Menjalankan Aplikasi BE, FE dan Database on top `docker compose`
 
-- Deploy aplikasi Web Server, Frontend, Backend, serta Database on top `docker compose`
-
-- Di dalam docker-compose file buat suatu custom network dengan nama **team kalian**, lalu pasang ke setiap service yang kalian miliki. (Nilai Bonus)
-
-  - Untuk Web Server buatlah configurasi reverse-proxy menggunakan nginx on top docker.
-    - **SSL CLOUDFLARE OFF!!!**
-    - Gunakan docker volume untuk membuat reverse proxy
-    - SSL sebisa mungkin gunakan wildcard
-    - Untuk DNS bisa sesuaikan seperti contoh di bawah ini
-      - Frontend team.studentdumbways.my.id
-      - Backend api.team.studentdumbways.my.id
-  - Push image ke docker registry kalian masing".
-
-- Aplikasi dapat berjalan dengan sesuai seperti melakukan login/register.
-
-## Rebuild Server Biznet
-
-1. Login ke biznet lalu pilih server yang ingin di rebuild
-2. Stop server kemudian klik rebuild dan pilih OS yang ingin digunakan.
-3. Tunggu proses rebuildnya selesai
+#### 1. Buat Dockerfile untuk BE dan FE kemudian build dengan menggunakan perintah `docker build -t <nama tag sesuai repo docker hub saja biar bisa langsung di push> .`
 
 Back-end Dockerfile
 
