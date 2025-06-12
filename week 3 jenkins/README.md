@@ -17,11 +17,11 @@
 
 ## Reverse Proxy Jenkins
 
-1.  install jenkins (disini saya menggunakan docker dan untuk dokumentasi intall jenkins dapat di lihat di https://www.jenkins.io/doc/book/installing/docker/)
-2.  Jika sudah buat akun untuk login ke jenkinsnya (disini saya membuat username: dumbways dan password: dumbways)
+1.  Jalankan/install jenkins (disini saya menjalankan Jenkins menggunakan docker dan untuk dokumentasi intall jenkins dapat di lihat di https://www.jenkins.io/doc/book/installing/docker/)
+2.  Setelah itu buat akun untuk login ke jenkinsnya (disini saya membuat username: dumbways dan password: dumbways)
     ![Reverse_Proxy](img/login.png)
 3.  Masuk ke cloudflare dan masukkan subdomain baru misal `pipeline-team.studentdumbways.my.id`
-4.  Konfigurasi domain tersebut dengan Nginx dan tambahkan SSL menggunakan wildcard dengan cerbeot (dokumentasi dapat dilihat di https://certbot.eff.org/instructions?ws=nginx&os=snap&tab=wildcard)
+4.  Konfigurasi domain tersebut dengan Nginx dan tambahkan SSL menggunakan wildcard dengan cerbot (dokumentasi dapat dilihat di https://certbot.eff.org/instructions?ws=nginx&os=snap&tab=wildcard)
 5.  apabila mendapati error seperti gambar di bawah saat mengenerate SSL menggunakan wildcard ikuti langkah 6
     ![Reverse_Proxy](img/error.png)
 6.  Buat token di cloudflare
@@ -154,7 +154,8 @@ server {
 ## Buat Jenkinsfile yang melakukan pull dari repository, dockerize/build aplikasi kita, test application, deploy aplikasi on top Docker, push ke Docker Hub
 
 1. Buat Jenkinsfile pada repo yang ter-remote dengan job di Jenkins
-   Jenkinsfile Front-end:
+
+###### Jenkinsfile Front-end:
 
 ```bash
 def secret = 'totywan-vps'
@@ -199,7 +200,6 @@ pipeline {
             }
         }
 
-
         stage ('Push to Docker Hub') {
             steps {
                 sshagent([secret]) {
@@ -224,7 +224,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ${server} << EOF
                             docker stop wayshub-fe || true
                             docker rm wayshub-fe || true
-                            docker run -d --name wayshub-fe -p 3000:3000 ${image}
+                            docker run -d --name wayshub-fe --network wayshub-network -p 3000:3000 ${image}
                             echo "🚀 Deployed frontend!"
                             exit
                         EOF
@@ -236,14 +236,14 @@ pipeline {
 }
 ```
 
-Jenkinsfile Back-end:
+###### Jenkinsfile Back-end:
 
 ```bash
 def secret = 'totywan-vps'
 def server = 'totywan@103.127.137.206'
 def directory = '/home/totywan/dumbways-app/wayshub-backend'
 def branch = 'main'
-def image = 'totywan/wayshub-frontend13:1.0'
+def image = 'totywan/wayshub-backend13:1.0'
 
 pipeline {
     agent any
@@ -306,7 +306,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ${server} << EOF
                             docker stop wayshub-be || true
                             docker rm wayshub-be || true
-                            docker run -d --name wayshub-be -p 5000:5000 ${image}
+                            docker run -d --name wayshub-be --network wayshub-network -p 5000:5000 ${image}
                             echo "🚀 Deployed Backend!"
                             exit
                         EOF
@@ -317,6 +317,24 @@ pipeline {
     }
 }
 ```
+
+Jalankan Mysql database :
+
+```bash
+docker run -d \
+  --name database \
+  -e MYSQL_ROOT_PASSWORD=rootpassword \
+  -e MYSQL_DATABASE=wayshub \
+  -e MYSQL_USER=user \
+  -e MYSQL_PASSWORD=password \
+  -v ~/mysql_data13:/var/lib/mysql \
+  -p 3306:3306 \
+  mysql:5.7 --default-authentication-plugin=mysql_native_password
+
+```
+
+Atur konfigurasi network untuk database agar satu network pada tiap container docker sedang untuk be dan fe bisa melalui Jenkinsfile
+![Reverse_Proxy](img/network.png)
 
 ## Auto trigger tiap ada perubahan di SCM
 
