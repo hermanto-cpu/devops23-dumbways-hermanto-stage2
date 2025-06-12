@@ -23,6 +23,10 @@
 2. Stop server kemudian klik rebuild dan pilih OS yang ingin digunakan.
 3. Tunggu proses rebuildnya selesai
 
+## Menjalankan Aplikasi BE, FE dan Database on top `docker compose`
+
+#### 1. Buat Dockerfile untuk BE dan FE kemudian build dengan menggunakan perintah `docker build -t <nama tag sesuai repo docker hub saja biar bisa langsung di push> .`
+
 Back-end Dockerfile
 
 ```bash
@@ -93,7 +97,7 @@ services:
    image: totywan/wayshub-frontend13
    stdin_open: true
    ports:
-     - 3069:3000
+     - 3000:3000
   frontend2:
    container_name: wayshub-fe-2
    depends_on:
@@ -101,7 +105,7 @@ services:
    image: totywan/wayshub-frontend13
    stdin_open: true
    ports:
-     - 3072:3000
+     - 3069:3000
   database:
    container_name: database
    image: mysql:5.7
@@ -143,3 +147,70 @@ services:
 ![Reverse_Proxy](img/berhasil.png)
 
 ---
+
+## Push Docker Image ke repo dockerhub
+
+1. pada shell login dahulu ke dockerhub `docker login`
+2. login ke dockerhub dan buat repo dengan nama image misal wayshub-backend
+3. jika nama image yang ingin di push sudah sesuai dengan repo di dockerhub (misal: totywan/wayshub-backend), maka bisa langsung dengan perintah `docker push totywan/wayshub-backend`
+4. jika belum bisa menggunakan `docker image <nama-image>:tag <nama-repo>`
+
+## Reverse Proxy dengan Nginx menggunakan Docker + Volume
+
+1. 1. Konfigurasi `nginx` (reverse proxy)
+
+Buat file `nginx/conf.d/rproxyfe.conf`:
+
+```nginx
+server {
+    server_name hermanto.studentdumbways.my.id;
+
+    location / {
+        proxy_pass http://103.127.137.206:3000;
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/hermanto.studentdumbways.my.id/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/hermanto.studentdumbways.my.id/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    if ($host = hermanto.studentdumbways.my.id) {
+        return 301 https://$host$request_uri;
+    }
+
+    server_name hermanto.studentdumbways.my.id;
+    listen 80;
+    return 404;
+}
+```
+
+2. dapat ditambahkan service didalam docker compose misalnya seperti ini
+
+```bash
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: reverse-proxy
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/letsencrypt    # volume untuk SSL
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+```
+
+3. Generate SSL dengan cerbot
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot certonly --nginx -d hermanto.studentdumbways.my.id
+
+```
+
+4. SSL akan tersimpan di /etc/letsencrypt kemudian copy `sudo cp -r /etc/letsencrypt ./nginx/ssl`
+5. setelah selesai jalankan `docker compose up -d`
