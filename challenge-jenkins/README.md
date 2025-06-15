@@ -168,17 +168,20 @@ pipeline {
             }
         }
 
-        stage ('Test Deployment (Spider)') {
+        stage ('Smoke Test Frontend') {
             steps {
                 sshagent([secret]) {
                     sh """
-                        ssh ${server} << EOF
-                            wget --spider --no-check-certificate -q https://hermanto.studentdumbways.my.id || exit 1
+                        ssh -o StrictHostKeyChecking=no ${server} << EOF
+                            wget --spider --server-response http://hermanto.studentdumbways.my.id || exit 1
+                            echo "✅ Frontend up & reachable"
+                            exit
                         EOF
                     """
                 }
             }
         }
+
     }
 }
 
@@ -254,12 +257,14 @@ pipeline {
             }
         }
 
-        stage ('Test Deployment (Spider)') {
+        stage ('Smoke Test Frontend') {
             steps {
                 sshagent([secret]) {
                     sh """
-                        ssh ${server} << EOF
-                            wget --spider --no-check-certificate -q https://api.hermanto.studentdumbways.my.id || exit 1
+                        ssh -o StrictHostKeyChecking=no ${server} << EOF
+                            wget --spider --server-response http://api.hermanto.studentdumbways.my.id || exit 1
+                            echo "✅ Backend up & reachable"
+                            exit
                         EOF
                     """
                 }
@@ -269,6 +274,8 @@ pipeline {
 }
 
 ```
+
+![Reverse_Proxy](img/spider.png)
 
 ---
 
