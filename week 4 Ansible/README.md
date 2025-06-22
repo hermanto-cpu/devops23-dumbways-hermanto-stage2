@@ -8,7 +8,7 @@
 
 ## 🚀 Install Docker via Ansible
 
-1. Install Ansible terlebih dahulu (![Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html))
+1. Install Ansible terlebih dahulu ([Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html))
 
 - Ansible berjalan diatas bahasa pemrograman python, jadi pastikan sudah menginstall python. Berdasarkan dokumentasi Ansible saat ini, versi Python yang disarankan adalah minimal 3.9
 - Apabila ingin install Ansible di windows, Ansible menyarankan untuk menggunakan WSL
